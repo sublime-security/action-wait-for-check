@@ -6,6 +6,7 @@ async function run(): Promise<void> {
   try {
     const token = core.getInput('token', {required: true})
 
+    core.info("ignoreIDs: '" + core.getInput('ignoreIDs') + "'")
     const result = await poll({
       client: getOctokit(token),
       log: msg => core.info(msg),
@@ -14,6 +15,7 @@ async function run(): Promise<void> {
       owner: core.getInput('owner') || context.repo.owner,
       repo: core.getInput('repo') || context.repo.repo,
       ref: core.getInput('ref') || context.sha,
+      ignoreIDs: core.getInput('ignoreIDs'),
 
       timeoutSeconds: parseInt(core.getInput('timeoutSeconds') || '600'),
       intervalSeconds: parseInt(core.getInput('intervalSeconds') || '10')

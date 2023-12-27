@@ -11,6 +11,7 @@ export interface Options {
   owner: string
   repo: string
   ref: string
+  ignoreIDs: string[]
 }
 
 export const poll = async (options: Options): Promise<string> => {
@@ -22,7 +23,8 @@ export const poll = async (options: Options): Promise<string> => {
     intervalSeconds,
     owner,
     repo,
-    ref
+    ref,
+    ignoreIDs
   } = options
 
   let now = new Date().getTime()
@@ -43,7 +45,10 @@ export const poll = async (options: Options): Promise<string> => {
       `Retrieved ${result.data.check_runs.length} check runs named ${checkName}`
     )
 
-    const completedCheck = result.data.check_runs.find(
+    let checkRuns = result.data.check_runs
+    checkRuns = checkRuns.filter((checkRun) => !ignoreIDs.includes(checkRun.id))
+
+    const completedCheck = checkRuns.find(
       checkRun => checkRun.status === 'completed'
     )
     if (completedCheck) {
