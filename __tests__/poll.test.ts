@@ -8,7 +8,7 @@ const client = {
   }
 }
 
-const run = () =>
+const run = (ignoreIDs?: string[]) =>
   poll({
     client: client as any,
     log: () => {},
@@ -18,7 +18,7 @@ const run = () =>
     ref: 'abcd',
     timeoutSeconds: 3,
     intervalSeconds: 0.1,
-    ignoreIDs: []
+    ignoreIDs: ignoreIDs || []
   })
 
 test('returns conclusion of completed check', async () => {
@@ -26,11 +26,11 @@ test('returns conclusion of completed check', async () => {
     data: {
       check_runs: [
         {
-          id: '1',
+          id: 1,
           status: 'pending'
         },
         {
-          id: '2',
+          id: 2,
           status: 'completed',
           conclusion: 'success'
         }
@@ -55,7 +55,7 @@ test('polls until check is completed', async () => {
       data: {
         check_runs: [
           {
-            id: '1',
+            id: 1,
             status: 'pending'
           }
         ]
@@ -65,7 +65,7 @@ test('polls until check is completed', async () => {
       data: {
         check_runs: [
           {
-            id: '1',
+            id: 1,
             status: 'pending'
           }
         ]
@@ -75,7 +75,7 @@ test('polls until check is completed', async () => {
       data: {
         check_runs: [
           {
-            id: '1',
+            id: 1,
             status: 'completed',
             conclusion: 'failure'
           }
@@ -89,12 +89,52 @@ test('polls until check is completed', async () => {
   expect(client.rest.checks.listForRef).toHaveBeenCalledTimes(3)
 })
 
+test('polls until not ignored check is completed', async () => {
+  client.rest.checks.listForRef
+    .mockResolvedValueOnce({
+      data: {
+        check_runs: [
+          {
+            id: 1,
+            status: 'completed',
+            conclusion: 'failure'
+          },
+          {
+            id: 2,
+            status: 'pending'
+          }
+        ]
+      }
+    })
+    .mockResolvedValueOnce({
+      data: {
+        check_runs: [
+          {
+            id: 1,
+            status: 'completed',
+            conclusion: 'failure'
+          },
+          {
+            id: 2,
+            status: 'completed',
+            conclusion: 'success'
+          }
+        ]
+      }
+    })
+
+  const result = await run(['1'])
+
+  expect(result).toBe('success')
+  expect(client.rest.checks.listForRef).toHaveBeenCalledTimes(2)
+})
+
 test(`returns 'timed_out' if exceeding deadline`, async () => {
   client.rest.checks.listForRef.mockResolvedValue({
     data: {
       check_runs: [
         {
-          id: '1',
+          id: 1,
           status: 'pending'
         }
       ]

@@ -6,11 +6,15 @@ async function run(): Promise<void> {
   try {
     const token = core.getInput('token', {required: true})
 
-    core.info(`ignoreIDs: ${core.getInput('ignoreIDs')}`)
-    const ignoreIDs = (core.getInput('ignoreIDs') || '')
+    const ignoreIDs = core
+      .getInput('ignoreIDs')
+      // Cleanup input since it's not ambiguous. Removing [] makes it easy to work with default json response from
+      // GitHub script actions.
+      .replace('[', '')
+      .replace(']', '')
       .split(',')
       .map(s => s.trim())
-    core.info(`parsed ignoreIDs: ${ignoreIDs}`)
+    core.info(`ignoreIDs: ${ignoreIDs}`)
 
     const result = await poll({
       client: getOctokit(token),

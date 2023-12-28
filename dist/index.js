@@ -42,11 +42,14 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput('token', { required: true });
-            core.info(`ignoreIDs: ${core.getInput('ignoreIDs')}`);
-            const ignoreIDs = (core.getInput('ignoreIDs') || '')
+            const ignoreIDs = core.getInput('ignoreIDs')
+                // Cleanup input since it's not ambiguous. Removing [] makes it easy to work with default json response from
+                // GitHub script actions.
+                .replace('[', '')
+                .replace(']', '')
                 .split(',')
                 .map(s => s.trim());
-            core.info(`parsed ignoreIDs: ${ignoreIDs}`);
+            core.info(`ignoreIDs: ${ignoreIDs}`);
             const result = yield (0, poll_1.poll)({
                 client: (0, github_1.getOctokit)(token),
                 log: msg => core.info(msg),
