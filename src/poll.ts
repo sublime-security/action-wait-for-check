@@ -46,7 +46,9 @@ export const poll = async (options: Options): Promise<string> => {
     )
 
     let checkRuns = result.data.check_runs
-    checkRuns = checkRuns.filter((checkRun) => !ignoreIDs.includes(checkRun.id))
+    checkRuns = checkRuns.filter(
+      checkRun => !ignoreIDs.includes(`${checkRun.id}`)
+    )
 
     const completedCheck = checkRuns.find(
       checkRun => checkRun.status === 'completed'

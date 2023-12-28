@@ -42,6 +42,11 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const token = core.getInput('token', { required: true });
+            core.info(`ignoreIDs: ${core.getInput('ignoreIDs')}`);
+            const ignoreIDs = (core.getInput('ignoreIDs') || '')
+                .split(',')
+                .map(s => s.trim());
+            core.info(`parsed ignoreIDs: ${ignoreIDs}`);
             const result = yield (0, poll_1.poll)({
                 client: (0, github_1.getOctokit)(token),
                 log: msg => core.info(msg),
@@ -49,6 +54,7 @@ function run() {
                 owner: core.getInput('owner') || github_1.context.repo.owner,
                 repo: core.getInput('repo') || github_1.context.repo.repo,
                 ref: core.getInput('ref') || github_1.context.sha,
+                ignoreIDs,
                 timeoutSeconds: parseInt(core.getInput('timeoutSeconds') || '600'),
                 intervalSeconds: parseInt(core.getInput('intervalSeconds') || '10')
             });
@@ -82,7 +88,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.poll = void 0;
 const wait_1 = __nccwpck_require__(5817);
 const poll = (options) => __awaiter(void 0, void 0, void 0, function* () {
-    const { client, log, checkName, timeoutSeconds, intervalSeconds, owner, repo, ref } = options;
+    const { client, log, checkName, timeoutSeconds, intervalSeconds, owner, repo, ref, ignoreIDs } = options;
     let now = new Date().getTime();
     const deadline = now + timeoutSeconds * 1000;
     while (now <= deadline) {
@@ -94,7 +100,9 @@ const poll = (options) => __awaiter(void 0, void 0, void 0, function* () {
             ref
         });
         log(`Retrieved ${result.data.check_runs.length} check runs named ${checkName}`);
-        const completedCheck = result.data.check_runs.find(checkRun => checkRun.status === 'completed');
+        let checkRuns = result.data.check_runs;
+        checkRuns = checkRuns.filter(checkRun => !ignoreIDs.includes(`${checkRun.id}`));
+        const completedCheck = checkRuns.find(checkRun => checkRun.status === 'completed');
         if (completedCheck) {
             log(`Found a completed check with id ${completedCheck.id} and conclusion ${completedCheck.conclusion}`);
             // conclusion is only `null` if status is not `completed`.
