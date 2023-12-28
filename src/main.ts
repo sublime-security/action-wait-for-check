@@ -15,7 +15,7 @@ async function run(): Promise<void> {
       owner: core.getInput('owner') || context.repo.owner,
       repo: core.getInput('repo') || context.repo.repo,
       ref: core.getInput('ref') || context.sha,
-      ignoreIDs: core.getInput('ignoreIDs'),
+      ignoreIDs: (core.getInput('ignoreIDs') || "").split(",").map((s) => s.trim()),
 
       timeoutSeconds: parseInt(core.getInput('timeoutSeconds') || '600'),
       intervalSeconds: parseInt(core.getInput('intervalSeconds') || '10')

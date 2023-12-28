@@ -21,6 +21,8 @@ inputs:
     description: 'The number of seconds to wait for the check to complete.'
   intervalSeconds:
     description: 'The number of seconds to wait before each poll of the GitHub API.'
+  ignoreIDs:
+    description: 'Check IDs to ignore.'
 runs:
   using: 'node16'
   main: 'dist/index.js'
